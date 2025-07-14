@@ -2,8 +2,7 @@
 
 An elegant and efficient web application designed to help developers quickly find the API key and documentation pages for hundreds of popular services. This tool solves the common problem of wasting time navigating complex websites just to get started with an API.
 
-![API Key Finder Screenshot](httpshttps://i.imgur.com/8a6P2hV.png) 
-*(Note: This is a placeholder image. You can replace it with a screenshot of the project.)*
+![API Key Finder Screenshot](https://postimg.cc/ykSp4DGV) 
 
 ---
 
