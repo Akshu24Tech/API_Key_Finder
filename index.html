@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Finder</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a nice, clean font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- PrismJS for code syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        /* A little custom CSS for our animations and overall feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* A dark, modern background */
+            color: #F9FAFB;
+        }
+        
+        /* A subtle background gradient animation */
+        .animated-gradient {
+            background: linear-gradient(-45deg, #111827, #1F2937, #374151, #111827);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* A simple fade-in animation for elements */
+        .fade-in {
+            animation: fadeInAnimation 0.8s ease-in-out forwards;
+        }
+        
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Styling for the code snippets */
+        pre[class*="language-"] {
+            border-radius: 0.5rem;
+            border: 1px solid #374151;
+        }
+    </style>
+</head>
+<body class="animated-gradient min-h-screen flex flex-col items-center p-4 py-10">
+
+    <main class="w-full max-w-3xl mx-auto text-center flex-grow">
+        
+        <!-- Main Header -->
+        <div class="fade-in" style="animation-delay: 0.2s;">
+            <h1 class="text-5xl md:text-6xl font-bold text-white tracking-tight">
+                API Key <span class="text-cyan-400">Finder</span>
+            </h1>
+            <p class="mt-4 text-lg text-gray-300">
+                Stop searching. Start building. Your guide to any API key.
+            </p>
+        </div>
+
+        <!-- NEW: Add a Guide Button -->
+        <div class="mt-8 fade-in" style="animation-delay: 0.5s;">
+            <button id="open-modal-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
+                + Submit a Guide
+            </button>
+        </div>
+
+        <!-- Search Bar Section -->
+        <div class="mt-8 fade-in" style="animation-delay: 0.6s;">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" /></svg>
+                </div>
+                <input type="text" id="searchInput" placeholder="Search for any service (e.g., 'Shopify', 'Discord')..." class="w-full bg-gray-800 border border-gray-600 text-white placeholder-gray-500 text-lg rounded-full py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300">
+            </div>
+        </div>
+        
+        <!-- Filter Tags Section -->
+        <div id="filter-tags" class="mt-6 flex flex-wrap justify-center gap-2 fade-in" style="animation-delay: 0.8s;"></div>
+
+        <!-- Results Section -->
+        <div id="results" class="mt-8 text-left"></div>
+
+    </main>
+    
+    <footer class="text-center mt-12 text-gray-500 fade-in" style="animation-delay: 1s;">
+        <p>Built with ❤️ for the developer community.</p>
+    </footer>
+
+    <!-- NEW: Submission Modal -->
+    <div id="submission-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 rounded-lg p-8 w-full max-w-lg text-left relative">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold text-cyan-400 mb-4">Submit a New Guide</h3>
+            <form id="submission-form">
+                <div class="space-y-4">
+                    <input type="text" placeholder="API Name (e.g., 'Shopify')" class="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600 focus:ring-cyan-400 focus:border-cyan-400" required>
+                    <textarea placeholder="Description" rows="2" class="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600 focus:ring-cyan-400 focus:border-cyan-400" required></textarea>
+                    <input type="url" placeholder="Link to API Key Page" class="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600 focus:ring-cyan-400 focus:border-cyan-400" required>
+                    <textarea placeholder="Quick Guide (one step per line)" rows="3" class="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600 focus:ring-cyan-400 focus:border-cyan-400" required></textarea>
+                    <input type="text" placeholder="Tags (comma-separated, e.g., 'ecommerce, shop')" class="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600 focus:ring-cyan-400 focus:border-cyan-400" required>
+                </div>
+                <div class="mt-6 flex justify-end gap-4">
+                    <button type="button" id="cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg">Submit Guide</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PrismJS for code syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <!-- FIXED: Combined all JavaScript into one block -->
+    <script>
+        // --- Element variables ---
+        const searchInput = document.getElementById('searchInput');
+        const resultsContainer = document.getElementById('results');
+        const filterTagsContainer = document.getElementById('filter-tags');
+        const openModalBtn = document.getElementById('open-modal-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const submissionModal = document.getElementById('submission-modal');
+        const submissionForm = document.getElementById('submission-form');
+
+        // --- Database ---
+        const apiDatabase = [
+            { 
+                name: 'Redis', 
+                description: 'In-memory data structure store, used as a database, cache, and message broker.', 
+                authType: 'Password / ACL', 
+                link: 'https://redis.io/docs/manual/security/', 
+                docs: 'https://redis.io/commands/', 
+                guide: ["Redis authentication is configured in the redis.conf file.", "Set the 'requirepass' directive to your desired password.", "For finer control, use Access Control List (ACL) commands like 'ACL SETUSER'."], 
+                tags: ['database', 'cache', 'in-memory', 'backend', 'devops'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Stripe', 
+                description: 'A suite of payment APIs that powers commerce for online businesses of all sizes.', 
+                authType: 'API Key', 
+                link: 'https://dashboard.stripe.com/apikeys', 
+                docs: 'https://stripe.com/docs/api', 
+                guide: ["Login to your Stripe Dashboard.", "Navigate to the 'Developers' section, then 'API Keys'.", "Your publishable and secret keys are listed here. Reveal the secret key to use it."], 
+                tags: ['payment', 'finance', 'ecommerce', 'fintech'],
+                codeSnippets: null
+            },
+            { 
+                name: 'GitLab', 
+                description: 'A complete DevOps platform, delivered as a single application.', 
+                authType: 'Personal Access Token', 
+                link: 'https://gitlab.com/-/profile/personal_access_tokens', 
+                docs: 'https://docs.gitlab.com/ee/api/', 
+                guide: ["Login to your GitLab account.", "Go to your User Settings > 'Access Tokens'.", "Create a new token, give it a name and select the desired scopes."], 
+                tags: ['code', 'hosting', 'devops', 'ci-cd', 'developer tools'],
+                codeSnippets: null
+            },
+            { 
+                name: 'HubSpot', 
+                description: 'A full platform of marketing, sales, customer service, and CRM software.', 
+                authType: 'Private App Token / OAuth 2.0', 
+                link: 'https://app.hubspot.com/developer/', 
+                docs: 'https://developers.hubspot.com/docs/api/overview', 
+                guide: ["Login to your HubSpot developer account.", "Create a new App.", "For server-side access, create a Private App to get a single access token.", "For user-based access, use the standard OAuth 2.0 flow."], 
+                tags: ['crm', 'marketing', 'sales', 'automation', 'communication'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Zoom', 
+                description: 'API for video conferencing, webinars, and screen sharing.', 
+                authType: 'JWT / OAuth 2.0', 
+                link: 'https://marketplace.zoom.us/develop/create', 
+                docs: 'https://developers.zoom.us/docs/api/', 
+                guide: ["Login to the Zoom App Marketplace.", "Click 'Develop' > 'Build App'.", "Choose an app type (e.g., JWT for server-to-server, OAuth for user-level).", "Your API Key and Secret will be in the 'App Credentials' section."], 
+                tags: ['video', 'communication', 'meeting', 'social'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Datadog', 
+                description: 'Monitoring and security platform for cloud applications.', 
+                authType: 'API Key & Application Key', 
+                link: 'https://app.datadoghq.com/organization-settings/api-keys', 
+                docs: 'https://docs.datadoghq.com/api/', 
+                guide: ["Login to Datadog.", "Go to 'Organization Settings' > 'API Keys'.", "Your API keys are listed, or you can create a new one.", "You will also need an Application Key from the 'Application Keys' tab."], 
+                tags: ['monitoring', 'analytics', 'devops', 'cloud', 'security'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Figma', 
+                description: 'The collaborative interface design tool.', 
+                authType: 'Personal Access Token', 
+                link: 'https://www.figma.com/developers/api', 
+                docs: 'https://www.figma.com/developers/api', 
+                guide: ["Login to Figma.", "Go to your main menu > 'Help and account' > 'Account settings'.", "Scroll down to 'Personal access tokens'.", "Create a new token."], 
+                tags: ['design', 'ui', 'ux', 'tools', 'collaboration'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Intercom', 
+                description: 'Customer communications platform for sales, marketing, and support.', 
+                authType: 'Access Token', 
+                link: 'https://app.intercom.com/a/apps/_/developer-hub', 
+                docs: 'https://developers.intercom.com/', 
+                guide: ["Login to your Intercom workspace.", "Go to 'Settings' > 'Developers' > 'Developer Hub'.", "Create a new app to get your access token."], 
+                tags: ['communication', 'crm', 'support', 'marketing', 'chat'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Postmark', 
+                description: 'Fast and reliable transactional email service for developers.', 
+                authType: 'Server Token', 
+                link: 'https://account.postmarkapp.com/servers', 
+                docs: 'https://postmarkapp.com/developer', 
+                guide: ["Login to your Postmark account.", "Select your Server, then go to the 'API Tokens' tab.", "Your Server API token is listed here."], 
+                tags: ['email', 'transactional', 'communication', 'developer tools'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Render', 
+                description: 'A unified cloud to build and run all your apps and websites.', 
+                authType: 'API Key', 
+                link: 'https://dashboard.render.com/account/api-keys', 
+                docs: 'https://render.com/docs/api', 
+                guide: ["Login to your Render dashboard.", "Go to your Account Settings > 'API Keys'.", "Click 'Create API Key' to generate a new one."], 
+                tags: ['hosting', 'cloud', 'deployment', 'paas', 'devops'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Heroku', 
+                description: 'A cloud platform as a service (PaaS) supporting several programming languages.', 
+                authType: 'Authorization Token', 
+                link: 'https://dashboard.heroku.com/account', 
+                docs: 'https://devcenter.heroku.com/articles/platform-api-reference', 
+                guide: ["Login to your Heroku Dashboard.", "Go to 'Account settings' > 'Applications'.", "Under 'Authorizations', you can create a new token or use an existing one."], 
+                tags: ['hosting', 'cloud', 'deployment', 'paas'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Contentful', 
+                description: 'A headless CMS to create, manage, and distribute content to any platform.', 
+                authType: 'Content Delivery/Preview API Key', 
+                link: 'https://app.contentful.com/spaces/', 
+                docs: 'https://www.contentful.com/developers/docs/references/content-delivery-api/', 
+                guide: ["Login to your Contentful space.", "Go to 'Settings' > 'API keys'.", "You can find your space ID and access tokens here.", "Add a new API key if needed."], 
+                tags: ['cms', 'headless', 'content', 'backend'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Dribbble', 
+                description: 'An online community for showcasing user-made artwork and design.', 
+                authType: 'OAuth2', 
+                link: 'https://dribbble.com/account/applications', 
+                docs: 'https://developer.dribbble.com/v2/', 
+                guide: ["Login to your Dribbble account.", "Go to 'Account Settings' > 'Applications'.", "Register a new application to get a Client ID and Client Secret."], 
+                tags: ['design', 'social', 'images', 'community'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Unsplash', 
+                description: 'The internet’s source of freely-usable images.', 
+                authType: 'Access Key', 
+                link: 'https://unsplash.com/oauth/applications', 
+                docs: 'https://unsplash.com/documentation', 
+                guide: ["Login to your Unsplash account.", "Go to 'Your apps' from the developer menu.", "Click 'New Application' and accept the terms.", "Your Access Key will be available in your app's dashboard."], 
+                tags: ['images', 'photos', 'media', 'data'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Jira Software Cloud', 
+                description: 'Project management tool for agile software development teams.', 
+                authType: 'API Token', 
+                link: 'https://id.atlassian.com/manage-profile/security/api-tokens', 
+                docs: 'https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/', 
+                guide: ["Login to your Atlassian account.", "Go to 'Profile' > 'Manage your account' > 'Security'.", "Click 'Create and manage API tokens'.", "Create a new token and save it securely."], 
+                tags: ['project management', 'tools', 'organization', 'productivity'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Auth0', 
+                description: 'Identity and access management platform for applications.', 
+                authType: 'Domain, Client ID & Secret', 
+                link: 'https://manage.auth0.com/#/applications', 
+                docs: 'https://auth0.com/docs', 
+                guide: ["Login to your Auth0 Dashboard.", "Go to 'Applications' and select your app.", "Your Domain, Client ID, and Client Secret are in the 'Settings' tab."], 
+                tags: ['auth', 'security', 'identity', 'user management'],
+                codeSnippets: null
+            },
+            { 
+                name: 'MongoDB Atlas', 
+                description: 'Cloud-hosted MongoDB service on AWS, Azure, and Google Cloud.', 
+                authType: 'API Key (Public & Private)', 
+                link: 'https://cloud.mongodb.com/v2#/account/publicApi', 
+                docs: 'https://www.mongodb.com/docs/atlas/api/', 
+                guide: ["Login to your MongoDB Atlas account.", "Go to 'Access Management' > 'API Keys'.", "Create a new API Key and assign it the required permissions.", "Save the Public and Private keys securely."], 
+                tags: ['database', 'nosql', 'cloud', 'backend'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Yelp Fusion', 
+                description: 'Access Yelp data, including business listings, reviews, and photos.', 
+                authType: 'API Key', 
+                link: 'https://www.yelp.com/developers/v3/manage_app', 
+                docs: 'https://docs.developer.yelp.com/docs/fusion-intro', 
+                guide: ["Login to the Yelp Developers portal.", "Create a new app by filling out the form.", "Your API Key will be generated and displayed on your app's page."], 
+                tags: ['local', 'business', 'reviews', 'search', 'data'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Google Drive', 
+                description: 'API for file storage, synchronization, and sharing.',
+                authType: 'OAuth 2.0 / API Key',
+                link: 'https://console.cloud.google.com/apis/credentials',
+                docs: 'https://developers.google.com/drive/api/guides/about-sdk',
+                guide: ["Go to the Google Cloud Console.", "Create a project and enable the 'Google Drive API'.", "Go to 'Credentials' to create an API Key or OAuth 2.0 Client ID."],
+                tags: ['storage', 'files', 'cloud', 'google', 'productivity'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Bitly', 
+                description: 'Powerful URL shortener and link management platform.',
+                authType: 'Generic Access Token',
+                link: 'https://app.bitly.com/settings/api/',
+                docs: 'https://dev.bitly.com/api-reference',
+                guide: ["Login to your Bitly account.", "Go to 'Settings' > 'API'.", "Generate a new access token by entering your password."],
+                tags: ['url', 'shortener', 'links', 'tools', 'marketing'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Airtable', 
+                description: 'A platform that makes it easy to build powerful, custom applications.', 
+                authType: 'Personal Access Token', 
+                link: 'https://airtable.com/create/tokens', 
+                docs: 'https://airtable.com/developers/web/api/introduction', 
+                guide: ["Login to your Airtable account.", "Go to your account page > Developer hub.", "Click '+ New token' to create a new Personal Access Token.", "Define scopes and add the bases you want to access."], 
+                tags: ['database', 'productivity', 'organization', 'tools'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Algolia', 
+                description: 'A powerful API platform for search and discovery.', 
+                authType: 'API Keys (Admin, Search-Only)', 
+                link: 'https://www.algolia.com/users/sign_in', 
+                docs: 'https://www.algolia.com/doc/', 
+                guide: ["Login to your Algolia dashboard.", "Navigate to 'Settings' > 'API Keys'.", "Your Application ID, Search-Only API Key, and Admin API Key are listed here."], 
+                tags: ['search', 'developer tools', 'discovery'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Mailchimp', 
+                description: 'Email marketing, automations, and CRM tools for small businesses.', 
+                authType: 'API Key', 
+                link: 'https://admin.mailchimp.com/account/api/', 
+                docs: 'https://mailchimp.com/developer/marketing/docs/fundamentals/', 
+                guide: ["Login to your Mailchimp account.", "Go to your Profile > Extras > API keys.", "Click 'Create A Key' to generate a new API key."], 
+                tags: ['marketing', 'email', 'communication', 'crm'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Asana', 
+                description: 'A work management platform teams use to stay focused on goals and projects.', 
+                authType: 'Personal Access Token', 
+                link: 'https://app.asana.com/0/my-apps', 
+                docs: 'https://developers.asana.com/docs/getting-started', 
+                guide: ["Login to your Asana account.", "Go to 'My Settings' > 'Apps' > 'Developer Apps'.", "Click '+ New access token' to create a new token."], 
+                tags: ['productivity', 'project management', 'organization', 'tools'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Dropbox', 
+                description: 'File hosting service that offers cloud storage, file synchronization, and client software.', 
+                authType: 'OAuth 2.0 / Access Token', 
+                link: 'https://www.dropbox.com/developers/apps', 
+                docs: 'https://dropbox.github.io/dropbox-api-v2-explorer/', 
+                guide: ["Login to the Dropbox App Console.", "Click 'Create app' and configure its permissions.", "Once created, find your App key and secret in the app's settings.", "Generate an access token for development."], 
+                tags: ['storage', 'cloud', 'files', 'hosting'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Vercel', 
+                description: 'Platform for frontend developers to deploy, preview, and ship websites.', 
+                authType: 'Access Token', 
+                link: 'https://vercel.com/account/tokens', 
+                docs: 'https://vercel.com/docs', 
+                guide: ["Login to your Vercel account.", "Go to Account Settings > Tokens.", "Click 'Create' to generate a new Personal Access Token."], 
+                tags: ['hosting', 'cloud', 'deployment', 'serverless'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Netlify', 
+                description: 'Platform for modern web projects with serverless functions, and more.', 
+                authType: 'Personal Access Token', 
+                link: 'https://app.netlify.com/user/applications#personal-access-tokens', 
+                docs: 'https://docs.netlify.com/', 
+                guide: ["Login to your Netlify account.", "Go to User settings > Applications.", "Under 'Personal access tokens', click 'New access token'.", "Give it a description and save the token."], 
+                tags: ['hosting', 'cloud', 'deployment', 'serverless', 'jamstack'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Cloudflare', 
+                description: 'Web performance and security company, providing CDN and DNS services.', 
+                authType: 'API Token / API Key', 
+                link: 'https://dash.cloudflare.com/profile/api-tokens', 
+                docs: 'https://developers.cloudflare.com/api/', 
+                guide: ["Login to your Cloudflare dashboard.", "Go to 'My Profile' > 'API Tokens'.", "Create a custom token with specific permissions or use the Global API Key."], 
+                tags: ['cdn', 'security', 'dns', 'hosting', 'performance'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Plaid', 
+                description: "Financial services API for connecting users' bank accounts to apps.", 
+                authType: 'API Keys (client_id, secret)', 
+                link: 'https://dashboard.plaid.com/team/keys', 
+                docs: 'https://plaid.com/docs/', 
+                guide: ["Sign up for a Plaid developer account.", "From your dashboard, go to 'Team Settings' > 'Keys'.", "Your client_id and sandbox/development secret will be listed."], 
+                tags: ['finance', 'banking', 'fintech', 'payment'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Supabase', 
+                description: 'The open source Firebase alternative for building backends.', 
+                authType: 'Project API Key', 
+                link: 'https://supabase.com/dashboard', 
+                docs: 'https://supabase.com/docs', 
+                guide: ["Login to your Supabase Dashboard.", "Select the project you want to work with.", "Go to 'Project Settings' > 'API'.", "Your Project URL and public/secret API keys are listed here."], 
+                tags: ['database', 'backend', 'auth', 'storage', 'open source'],
+                codeSnippets: {
+                    javascript: `import { createClient } from '@supabase/supabase-js'\n\nconst supabaseUrl = 'YOUR_SUPABASE_URL'\nconst supabaseKey = 'YOUR_SUPABASE_ANON_KEY'\nconst supabase = createClient(supabaseUrl, supabaseKey)\n\nasync function getCountries() {\n  const { data, error } = await supabase.from('countries').select()\n  console.log(data)\n}\n\ngetCountries()`
+                }
+            },
+            { 
+                name: 'Mapbox', 
+                description: 'Location data and tools for developers.', 
+                authType: 'Access Token', 
+                link: 'https://account.mapbox.com/access-tokens', 
+                docs: 'https://docs.mapbox.com/', 
+                guide: ["Login to your Mapbox account.", "Navigate to the 'Access tokens' page.", "Your default public token is available, or you can click 'Create a token'."], 
+                tags: ['maps', 'location', 'geocoding'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Trello', 
+                description: 'API for the popular list-making collaboration tool.', 
+                authType: 'API Key & Token', 
+                link: 'https://trello.com/app-key', 
+                docs: 'https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/', 
+                guide: ["Login to your Trello account.", "Go to the App Key generation page.", "Your API Key will be displayed.", "You must also manually generate a Token on the same page."], 
+                tags: ['productivity', 'organization', 'tools', 'project management'],
+                codeSnippets: null
+            },
+            { 
+                name: 'NewsAPI', 
+                description: 'Search news articles and sources from across the web.', 
+                authType: 'API Key', 
+                link: 'https://newsapi.org/account', 
+                docs: 'https://newsapi.org/docs', 
+                guide: ["Login to your NewsAPI account.", "Your API key is available on your account dashboard."], 
+                tags: ['news', 'media', 'articles', 'data'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Imgur', 
+                description: 'API for the popular online image sharing community.', 
+                authType: 'Client ID (OAuth 2.0)', 
+                link: 'https://api.imgur.com/oauth2/addclient', 
+                docs: 'https://apidocs.imgur.com/', 
+                guide: ["Login to your Imgur account.", "Register your application to receive a Client ID and Client Secret.", "Choose an authorization type for your application."], 
+                tags: ['media', 'images', 'hosting', 'social'],
+                codeSnippets: null
+            },
+            { 
+                name: 'OpenAI', 
+                description: 'Access powerful models like GPT-4 for language understanding and generation.', 
+                authType: 'API Key', 
+                link: 'https://platform.openai.com/api-keys', 
+                docs: 'https://platform.openai.com/docs/api-reference', 
+                guide: ["Sign in to the OpenAI Platform.", "Click on your profile icon in the top-right corner.", "Select 'View API keys' from the menu.", "Click 'Create new secret key'."], 
+                tags: ['ai', 'llm', 'language model', 'gpt'], 
+                codeSnippets: { 
+                    python: `import openai\n\nclient = openai.OpenAI(\n    api_key="YOUR_OPENAI_API_KEY"\n)\n\nresponse = client.chat.completions.create(\n  model="gpt-4",\n  messages=[{"role": "user", "content": "Hello, world!"}]\n)\n\nprint(response.choices[0].message.content)`, 
+                    javascript: `import OpenAI from 'openai';\n\nconst openai = new OpenAI({\n  apiKey: 'YOUR_OPENAI_API_KEY',\n});\n\nasync function main() {\n  const completion = await openai.chat.completions.create({\n    messages: [{ role: 'user', content: 'Hello, world!' }],\n    model: 'gpt-4',\n  });\n  console.log(completion.choices[0].message.content);\n}\n\nmain();` 
+                } 
+            },
+            { 
+                name: 'Google AI (Gemini)', 
+                description: "Access Google's next-generation multimodal models.", 
+                authType: 'API Key', 
+                link: 'https://aistudio.google.com/app/apikey', 
+                docs: 'https://ai.google.dev/docs', 
+                guide: ["Go to Google AI Studio.", "Sign in with your Google account.", "Click on 'Get API key' in the left sidebar.", "Click 'Create API key in new project'."], 
+                tags: ['ai', 'llm', 'language model', 'gemini', 'google'], 
+                codeSnippets: { 
+                    python: `import google.generativeai as genai\n\ngenai.configure(api_key="YOUR_GEMINI_API_KEY")\n\nmodel = genai.GenerativeModel('gemini-pro')\nresponse = model.generate_content("Hello, world!")\n\nprint(response.text)`, 
+                    javascript: `const { GoogleGenerativeAI } = require("@google/generative-ai");\n\nconst genAI = new GoogleGenerativeAI("YOUR_GEMINI_API_KEY");\n\nasync function run() {\n  const model = genAI.getGenerativeModel({ model: "gemini-pro"});\n  const prompt = "Hello, world!";\n  const result = await model.generateContent(prompt);\n  const response = await result.response;\n  console.log(response.text());\n}\n\nrun();` 
+                } 
+            },
+            { 
+                name: 'Anthropic (Claude)', 
+                description: "Access Claude, a family of large language models from Anthropic.", 
+                authType: 'API Key', 
+                link: 'https://console.anthropic.com/settings/keys', 
+                docs: 'https://docs.anthropic.com/claude/reference/getting-started-with-the-api', 
+                guide: ["Sign in to the Anthropic Console.", "Go to Account Settings in the sidebar.", "Navigate to the 'API Keys' section.", "Click 'Create Key' to generate a new API key."], 
+                tags: ['ai', 'llm', 'language model', 'claude'], 
+                codeSnippets: { 
+                    python: `import anthropic\n\nclient = anthropic.Anthropic(\n    api_key="YOUR_CLAUDE_API_KEY",\n)\n\nmessage = client.messages.create(\n    model="claude-3-opus-20240229",\n    max_tokens=1024,\n    messages=[{"role": "user", "content": "Hello, world!"}]\n)\n\nprint(message.content)`, 
+                    javascript: `import Anthropic from '@anthropic-ai/sdk';\n\nconst anthropic = new Anthropic({\n  apiKey: 'YOUR_CLAUDE_API_KEY',\n});\n\nasync function main() {\n  const message = await anthropic.messages.create({\n    max_tokens: 1024,\n    messages: [{ role: 'user', content: 'Hello, world!' }],\n    model: 'claude-3-opus-20240229',\n  });\n  console.log(message.content);\n}\n\nmain();`
+                } 
+            },
+            { 
+                name: 'Hugging Face', 
+                description: "Access thousands of models for NLP, vision, and audio via the Inference API.", 
+                authType: 'User Access Token', 
+                link: 'https://huggingface.co/settings/tokens', 
+                docs: 'https://huggingface.co/docs/api-inference/quicktour', 
+                guide: ["Login to your Hugging Face account.", "Go to your Profile, then click 'Settings'.", "Select 'Access Tokens' from the left menu.", "Click 'New token' to create a new API token."], 
+                tags: ['ai', 'nlp', 'vision', 'audio', 'models'], 
+                codeSnippets: { 
+                    python: `import requests\n\nAPI_URL = "https://api-inference.huggingface.co/models/gpt2"\nheaders = {"Authorization": "Bearer YOUR_HUGGINGFACE_TOKEN"}\n\ndef query(payload):\n    response = requests.post(API_URL, headers=headers, json=payload)\n    return response.json()\n\noutput = query({"inputs": "Hello, world!"})\nprint(output)`, 
+                    javascript: `async function query(data) {\n  const response = await fetch(\n    "https://api-inference.huggingface.co/models/gpt2",\n    {\n      headers: { Authorization: "Bearer YOUR_HUGGINGFACE_TOKEN" },\n      method: "POST",\n      body: JSON.stringify(data),\n    }\n  );\n  const result = await response.json();\n  return result;\n}\n\nquery({"inputs": "Hello, world!"}).then((response) => {\n  console.log(JSON.stringify(response));\n});`
+                } 
+            },
+            { 
+                name: 'Cohere', 
+                description: "Build applications with language AI for summarization, generation, and more.", 
+                authType: 'API Key', 
+                link: 'https://dashboard.cohere.com/api-keys', 
+                docs: 'https://docs.cohere.com/reference/generate', 
+                guide: ["Sign in to the Cohere Dashboard.", "Navigate to the 'API Keys' section from the sidebar.", "Your key will be available to copy.", "You can create new keys if needed."], 
+                tags: ['ai', 'llm', 'language model', 'generation'], 
+                codeSnippets: { 
+                    python: `import cohere\n\nco = cohere.Client('YOUR_COHERE_API_KEY')\n\nresponse = co.generate(\n  model='command',\n  prompt='Hello, world!',\n  max_tokens=20\n)\n\nprint(response.generations[0].text)`, 
+                    javascript: `import { CohereClient } from "cohere-ai";\n\nconst cohere = new CohereClient({\n    token: "YOUR_COHERE_API_KEY",\n});\n\n(async () => {\n    const response = await cohere.generate({\n        model: "command",\n        prompt: "Hello, world!",\n        maxTokens: 20,\n    });\n    console.log(response.generations[0].text);\n})();`
+                } 
+            },
+            { 
+                name: 'Mistral AI', 
+                description: "Access open and optimized models from Mistral AI.", 
+                authType: 'API Key', 
+                link: 'https://console.mistral.ai/api-keys/', 
+                docs: 'https://docs.mistral.ai/getting-started/quickstart/', 
+                guide: ["Sign in to the Mistral AI platform.", "Navigate to the 'API Keys' page.", "Click 'Create new key' to generate your key.", "Make sure to save it as you won't be able to see it again."], 
+                tags: ['ai', 'llm', 'language model', 'open source'], 
+                codeSnippets: { 
+                    python: `from mistralai.client import MistralClient\nfrom mistralai.models.chat_completion import ChatMessage\n\napi_key = "YOUR_MISTRAL_API_KEY"\nmodel = "mistral-large-latest"\n\nclient = MistralClient(api_key=api_key)\n\nresponse = client.chat(\n    model=model,\n    messages=[ChatMessage(role="user", content="Hello, world!")]\n)\n\nprint(response.choices[0].message.content)`, 
+                    javascript: `import MistralClient from '@mistralai/mistralai';\n\nconst apiKey = "YOUR_MISTRAL_API_KEY";\nconst client = new MistralClient(apiKey);\n\nasync function main() {\n  const chatResponse = await client.chat({\n    model: 'mistral-large-latest',\n    messages: [{ role: 'user', content: 'Hello, world!' }],\n  });\n  console.log(chatResponse.choices[0].message.content);\n}\n\nmain();`
+                } 
+            },
+            { 
+                name: 'Twilio', 
+                description: 'Communication APIs for SMS, voice, video, and authentication.', 
+                authType: 'API Key / Auth Token', 
+                link: 'https://console.twilio.com/us1/account/keys-credentials/api-keys', 
+                docs: 'https://www.twilio.com/docs', 
+                guide: ["Login to the Twilio Console.", "Navigate to 'Account' > 'API keys & tokens'.", "Click 'Create API key' or use the Account SID & Auth Token from the dashboard."], 
+                tags: ['communication', 'sms', 'voice', 'video'],
+                codeSnippets: {
+                    python: `from twilio.rest import Client\n\naccount_sid = "YOUR_ACCOUNT_SID"\nauth_token = "YOUR_AUTH_TOKEN"\nclient = Client(account_sid, auth_token)\n\nmessage = client.messages.create(\n    to="+15558675309",\n    from_="+15017122661",\n    body="Hello from Twilio!"\n)\n\nprint(message.sid)`,
+                    javascript: `const accountSid = 'YOUR_ACCOUNT_SID';\nconst authToken = 'YOUR_AUTH_TOKEN';\nconst client = require('twilio')(accountSid, authToken);\n\nclient.messages\n  .create({\n     body: 'Hello from Twilio!',\n     from: '+15017122661',\n     to: '+15558675309'\n   })\n  .then(message => console.log(message.sid));`
+                }
+            },
+            { 
+                name: 'SendGrid', 
+                description: 'Email API for sending transactional and marketing emails.', 
+                authType: 'API Key', 
+                link: 'https://app.sendgrid.com/settings/api_keys', 
+                docs: 'https://docs.sendgrid.com/for-developers/sending-email', 
+                guide: ["Login to your SendGrid account.", "Navigate to 'Settings' > 'API Keys' from the left menu.", "Click 'Create API Key'.", "Give it a name, choose permissions, and click 'Create & View'."], 
+                tags: ['email', 'communication', 'marketing'],
+                codeSnippets: {
+                    python: `import sendgrid\nimport os\nfrom sendgrid.helpers.mail import Mail\n\nsg = sendgrid.SendGridAPIClient(api_key='YOUR_SENDGRID_API_KEY')\nfrom_email = 'test@example.com'\nto_email = 'test@example.com'\nsubject = 'Sending with Twilio SendGrid is Fun'\ncontent = 'and easy to do anywhere, even with Python'\nmessage = Mail(from_email, to_email, subject, content)\nresponse = sg.send(message)\nprint(response.status_code)`,
+                    javascript: `const sgMail = require('@sendgrid/mail');\nsgMail.setApiKey('YOUR_SENDGRID_API_KEY');\nconst msg = {\n  to: 'test@example.com',\n  from: 'test@example.com',\n  subject: 'Sending with SendGrid is Fun',\n  text: 'and easy to do anywhere, even with Node.js',\n};\nsgMail\n  .send(msg)\n  .then(() => console.log('Email sent'))\n  .catch((error) => console.error(error));`
+                }
+            },
+            { 
+                name: 'Discord', 
+                description: 'Build bots and integrations for the popular chat platform.', 
+                authType: 'Bot Token', 
+                link: 'https://discord.com/developers/applications', 
+                docs: 'https://discord.com/developers/docs/intro', 
+                guide: ["Go to the Discord Developer Portal.", "Click 'New Application' and give it a name.", "Go to the 'Bot' tab and click 'Add Bot'.", "Click 'Reset Token' to reveal and copy your bot token."], 
+                tags: ['social', 'community', 'chat', 'bots'],
+                codeSnippets: {
+                    python: `import discord\n\nintents = discord.Intents.default()\nintents.message_content = True\nclient = discord.Client(intents=intents)\n\n@client.event\nasync def on_ready():\n    print(f'We have logged in as {client.user}')\n\nclient.run('YOUR_BOT_TOKEN')`,
+                    javascript: `const { Client, GatewayIntentBits } = require('discord.js');\nconst client = new Client({ intents: [GatewayIntentBits.Guilds] });\n\nclient.on('ready', () => {\n  console.log(\`Logged in as \${client.user.tag}!\`);\n});\n\nclient.login('YOUR_BOT_TOKEN');`
+                }
+            },
+            { 
+                name: 'Slack', 
+                description: 'Create apps and integrations for the business communication platform.', 
+                authType: 'Bot User OAuth Token', 
+                link: 'https://api.slack.com/apps', 
+                docs: 'https://api.slack.com/', 
+                guide: ["Go to the Slack API page and click 'Create New App'.", "Choose 'From scratch', name your app, and select a workspace.", "Go to 'OAuth & Permissions' in the sidebar.", "Click 'Install to Workspace' to get your Bot User OAuth Token."], 
+                tags: ['workplace', 'chat', 'bots', 'communication'],
+                codeSnippets: {
+                    python: `import os\nfrom slack_sdk import WebClient\n\nclient = WebClient(token="YOUR_SLACK_BOT_TOKEN")\n\nresponse = client.chat_postMessage(\n    channel="#random",\n    text="Hello from your app!"\n)\n\nprint(response["message"]["text"])`,
+                    javascript: `const { App } = require('@slack/bolt');\n\nconst app = new App({\n  token: "YOUR_SLACK_BOT_TOKEN",\n  signingSecret: "YOUR_SIGNING_SECRET"\n});\n\n(async () => {\n  await app.start(process.env.PORT || 3000);\n  console.log('⚡️ Bolt app is running!');\n})();`
+                }
+            },
+            { 
+                name: 'Amazon S3 (AWS)', 
+                description: 'Scalable object storage in the cloud from Amazon Web Services.', 
+                authType: 'Access Key & Secret', 
+                link: 'https://console.aws.amazon.com/iam/home#/users', 
+                docs: 'https://docs.aws.amazon.com/s3/?id=docs_gateway', 
+                guide: ["Login to the AWS IAM Console.", "Select a user or create a new one.", "Go to the 'Security credentials' tab.", "Click 'Create access key' and choose your use case.", "Save the Access Key ID and Secret Access Key securely."], 
+                tags: ['cloud', 'storage', 'hosting', 'aws'],
+                codeSnippets: {
+                    python: `import boto3\n\ns3 = boto3.client(\n    's3',\n    aws_access_key_id='YOUR_ACCESS_KEY_ID',\n    aws_secret_access_key='YOUR_SECRET_ACCESS_KEY'\n)\n\nresponse = s3.list_buckets()\nprint("Existing buckets:")\nfor bucket in response['Buckets']:\n    print(f'  {bucket["Name"]}')`,
+                    javascript: `import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";\n\nconst client = new S3Client({\n  region: "us-east-1",\n  credentials: {\n    accessKeyId: "YOUR_ACCESS_KEY_ID",\n    secretAccessKey: "YOUR_SECRET_ACCESS_KEY",\n  },\n});\n\nconst command = new ListBucketsCommand({});\nconst response = await client.send(command);\nconsole.log(response.Buckets);`
+                }
+            },
+            { 
+                name: 'Firebase', 
+                description: "Google's platform for building web and mobile applications.", 
+                authType: 'Service Account / Web API Key', 
+                link: 'https://console.firebase.google.com/', 
+                docs: 'https://firebase.google.com/docs', 
+                guide: ["Go to the Firebase Console and create a new project.", "In your Project Settings, find your Web API Key.", "For server-side access, go to 'Service accounts' and generate a new private key."], 
+                tags: ['database', 'hosting', 'auth', 'google', 'cloud'],
+                codeSnippets: {
+                    python: `# Use the Firebase Admin SDK for server-side access\nimport firebase_admin\nfrom firebase_admin import credentials, db\n\ncred = credentials.Certificate("path/to/your/serviceAccountKey.json")\nfirebase_admin.initialize_app(cred, {\n    'databaseURL': 'https://your-database-name.firebaseio.com/'\n})\n\nref = db.reference('server/saving-data/fireblog')\nref.set({'title': 'Hello World', 'body': 'I am writing data to Firebase!'})`,
+                    javascript: `// Use the Firebase Web SDK for client-side access\nimport { initializeApp } from "firebase/app";\nimport { getDatabase, ref, set } from "firebase/database";\n\nconst firebaseConfig = {\n  apiKey: "YOUR_WEB_API_KEY",\n  authDomain: "your-project-id.firebaseapp.com",\n  databaseURL: "https://your-database-name.firebaseio.com",\n  projectId: "your-project-id",\n};\n\nconst app = initializeApp(firebaseConfig);\nconst database = getDatabase(app);\n\nset(ref(database, 'users/user1'), {\n  username: 'John Doe',\n  email: 'john.doe@example.com',\n});`
+                }
+            },
+            { 
+                name: 'PayPal', 
+                description: 'Global online payment system for sending and receiving money.', 
+                authType: 'Client ID & Secret (OAuth 2.0)', 
+                link: 'https://developer.paypal.com/dashboard/applications/sandbox', 
+                docs: 'https://developer.paypal.com/api/rest/', 
+                guide: ["Login to the PayPal Developer Dashboard.", "Navigate to 'My Apps & Credentials'.", "Click 'Create App' to get your Sandbox Client ID and Secret."], 
+                tags: ['payment', 'finance', 'ecommerce'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Spotify', 
+                description: 'API for music data, playlists, and playback control.', 
+                authType: 'OAuth 2.0', 
+                link: 'https://developer.spotify.com/dashboard/', 
+                docs: 'https://developer.spotify.com/documentation/web-api/', 
+                guide: ["Go to the Spotify Developer Dashboard and log in.", "Click 'Create an app' and fill out the details.", "Once created, you will see your Client ID and Client Secret."], 
+                tags: ['music', 'media', 'audio', 'social'],
+                codeSnippets: null
+            },
+            { 
+                name: 'DigitalOcean', 
+                description: 'Cloud infrastructure provider for developers.', 
+                authType: 'Personal Access Token', 
+                link: 'https://cloud.digitalocean.com/account/api/tokens', 
+                docs: 'https://docs.digitalocean.com/reference/api/api-reference/', 
+                guide: ["Login to your DigitalOcean account.", "Go to the 'API' section from the left menu.", "Click 'Generate New Token' and give it a name and scope."], 
+                tags: ['cloud', 'hosting', 'vps', 'developer tools'],
+                codeSnippets: null
+            },
+            { 
+                name: 'GIPHY', 
+                description: "The API for the internet's library of GIFs and stickers.", 
+                authType: 'API Key', 
+                link: 'https://developers.giphy.com/dashboard/', 
+                docs: 'https://developers.giphy.com/docs/api/', 
+                guide: ["Login to the GIPHY for Developers dashboard.", "Click 'Create an App' and select the API type.", "Your API Key will be generated for your new app."], 
+                tags: ['media', 'images', 'gif', 'social'],
+                codeSnippets: {
+                    python: `import requests\n\napi_key = "YOUR_GIPHY_API_KEY"\n\nparams = {'api_key': api_key, 'q': 'hello world', 'limit': 1}\nresponse = requests.get("http://api.giphy.com/v1/gifs/search", params=params)\n\nif response.status_code == 200:\n    print(response.json()['data'][0]['url'])\nelse:\n    print("Error:", response.status_code)`,
+                    javascript: `const apiKey = 'YOUR_GIPHY_API_KEY';\nconst query = 'hello world';\n\nfetch(\`http://api.giphy.com/v1/gifs/search?api_key=\${apiKey}&q=\${query}&limit=1\`)\n  .then(response => response.json())\n  .then(data => console.log(data.data[0].url))\n  .catch(error => console.error('Error:', error));`
+                }
+            },
+            { 
+                name: 'Shopify', 
+                description: 'E-commerce platform for creating and managing online stores.', 
+                authType: 'API Key & Secret / Access Token', 
+                link: 'https://www.shopify.com/partners', 
+                docs: 'https://shopify.dev/api/admin-rest', 
+                guide: ["Create a Shopify Partner account or login to your store's admin.", "In 'Apps', create a new private app or custom app.", "Configure the required permissions (scopes).", "Your API Key, Secret, and Access Token will be generated."], 
+                tags: ['ecommerce', 'shop', 'payment', 'store'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Notion', 
+                description: 'API for the all-in-one workspace for notes, tasks, and wikis.', 
+                authType: 'Integration Token', 
+                link: 'https://www.notion.so/my-integrations', 
+                docs: 'https://developers.notion.com/docs/getting-started', 
+                guide: ["Go to the Notion integrations page and log in.", "Click '+ New integration' and give it a name.", "Copy the 'Internal Integration Token' that is generated.", "Share specific pages with your integration to grant access."], 
+                tags: ['productivity', 'notes', 'tools', 'organization'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Twitch', 
+                description: 'API for the world’s leading live streaming platform for gamers.', 
+                authType: 'Client ID & Secret (OAuth 2.0)', 
+                link: 'https://dev.twitch.tv/console/apps', 
+                docs: 'https://dev.twitch.tv/docs/api/', 
+                guide: ["Login to the Twitch Developer Console.", "Navigate to the 'Applications' tab.", "Click '+ Register Your Application'.", "Fill out the form to get your Client ID and generate a Client Secret."], 
+                tags: ['streaming', 'video', 'gaming', 'social'],
+                codeSnippets: null
+            },
+            { 
+                name: 'LinkedIn', 
+                description: 'API for the world’s largest professional network.', 
+                authType: 'OAuth 2.0', 
+                link: 'https://www.linkedin.com/developers/apps/new', 
+                docs: 'https://learn.microsoft.com/en-us/linkedin/', 
+                guide: ["Login to the LinkedIn Developer Platform.", "Click 'Create app' and fill in your company and app details.", "Verify your app to get access to more permissions.", "Your Client ID and Secret are in the 'Auth' tab."], 
+                tags: ['social', 'professional', 'networking', 'jobs'],
+                codeSnippets: null
+            },
+            { 
+                name: 'Vimeo', 
+                description: 'High-quality tools for video hosting, sharing, and streaming.', 
+                authType: 'Personal Access Token / OAuth 2.0', 
+                link: 'https://developer.vimeo.com/apps', 
+                docs: 'https://developer.vimeo.com/api/guides/start', 
+                guide: ["Login to the Vimeo Developer portal.", "Click '+ Create a new app' and provide the required information.", "For personal use, you can generate a Personal Access Token.", "For user access, use the Client ID and Secret for the OAuth flow."], 
+                tags: ['video', 'media', 'hosting', 'streaming'],
+                codeSnippets: null
+            },
+            { name: 'Stripe', description: 'Payment processing platform for e-commerce.', authType: 'API Key', link: 'https://dashboard.stripe.com/apikeys', docs: 'https://stripe.com/docs/api', guide: ["Login and go to the 'Developers' section.", "Click on 'API Keys' in the sidebar.", "Your keys are listed here. Click to reveal the secret key."], tags: ['payment', 'finance', 'ecommerce'], codeSnippets: { python: `import requests\n\napi_key = 'sk_test_YOUR_SECRET_KEY'\n\nresponse = requests.get(\n    'https://api.stripe.com/v1/customers',\n    auth=(api_key, '')\n)\n\nprint(response.json())`, javascript: `const apiKey = 'sk_test_YOUR_SECRET_KEY';\n\nfetch('https://api.stripe.com/v1/customers', {\n  headers: {\n    'Authorization': \`Bearer \${apiKey}\`\n  }\n})\n.then(res => res.json())\n.then(console.log);` } },
+            { name: 'GitHub', description: 'API for code hosting, version control, and collaboration.', authType: 'Personal Access Tokens', link: 'https://github.com/settings/tokens', docs: 'https://docs.github.com/en/rest', guide: ["Go to your 'Developer settings' page.", "Click on 'Personal access tokens' > 'Tokens (classic)'.", "Click 'Generate new token' and follow the steps."], tags: ['code', 'developer tools', 'hosting'], codeSnippets: { python: `import requests\n\ntoken = 'YOUR_PERSONAL_ACCESS_TOKEN'\nusername = 'YOUR_GITHUB_USERNAME'\n\nheaders = {'Authorization': f'token {token}'}\nresponse = requests.get(f'https://api.github.com/users/{username}', headers=headers)\n\nprint(response.json())`, javascript: `const token = 'YOUR_PERSONAL_ACCESS_TOKEN';\nconst username = 'YOUR_GITHUB_USERNAME';\n\nfetch(\`https://api.github.com/users/\${username}\`, {\n  headers: {\n    'Authorization': \`token \${token}\`\n  }\n})\n.then(res => res.json())\n.then(console.log);` } },
+            { name: 'OpenWeatherMap', description: 'Provides weather data for any location.', authType: 'API Key', link: 'https://home.openweathermap.org/api_keys', docs: 'https://openweathermap.org/api', guide: ["Sign in to your account.", "Navigate to the 'API keys' tab.", "Your default key is already generated, or you can create a new one."], tags: ['weather', 'data', 'forecast'], codeSnippets: null }
+        ];
+
+        let activeFilterTag = 'All';
+
+        // --- Utility Functions ---
+        function copyToClipboard(text, buttonElement) {
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = 'Copied!';
+            buttonElement.classList.add('text-green-400');
+            setTimeout(() => {
+                buttonElement.innerHTML = originalText;
+                buttonElement.classList.remove('text-green-400');
+            }, 1500);
+        }
+
+        // --- Display Functions ---
+        function displayResults(foundApis, searchTerm = '') {
+            resultsContainer.innerHTML = '';
+
+            if (foundApis.length === 0 && searchTerm) {
+                const smartSearchCard = `
+                    <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6 mb-4 fade-in">
+                        <h3 class="text-2xl font-bold text-amber-400">No Guide Found for "${searchTerm}"</h3>
+                        <p class="text-gray-300 mt-2">
+                            We don't have a curated guide for this yet. But don't worry! 
+                            You can usually find what you need with these smart searches:
+                        </p>
+                        <div class="mt-6 flex flex-col sm:flex-row gap-4">
+                            <a href="https://www.google.com/search?q=${encodeURIComponent(searchTerm + ' api key')}" target="_blank" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300 text-center">
+                                Find API Key Page ➔
+                            </a>
+                            <a href="https://www.google.com/search?q=${encodeURIComponent(searchTerm + ' api documentation')}" target="_blank" class="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300 text-center">
+                                Read Docs
+                            </a>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.innerHTML = smartSearchCard;
+                return;
+            }
+
+            foundApis.forEach((api, index) => {
+                const guideItems = api.guide.map(step => `<li class="mb-1">${step}</li>`).join('');
+                const tagItems = api.tags.map(tag => `<span class="bg-gray-700 text-cyan-300 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('');
+
+                let codeSnippetHtml = '';
+                if (api.codeSnippets) {
+                    const snippets = api.codeSnippets;
+                    const languages = Object.keys(snippets);
+                    const tabButtons = languages.map((lang, i) => `<button data-lang="${lang}" class="snippet-tab px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${i === 0 ? 'bg-gray-900 text-cyan-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}">${lang.charAt(0).toUpperCase() + lang.slice(1)}</button>`).join('');
+                    const codeBlocks = languages.map((lang, i) => `<div class="snippet-content ${i === 0 ? '' : 'hidden'}" data-lang-content="${lang}"><div class="relative"><pre class="language-${lang} !bg-gray-900 !my-0"><code>${snippets[lang].replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre><button class="copy-code-btn absolute top-2 right-2 text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-1 bg-gray-700/50 px-2 py-1 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>Copy</button></div></div>`).join('');
+                    codeSnippetHtml = `<div class="mt-5 border-t border-gray-700 pt-4"><h4 class="font-semibold text-gray-200 mb-2">"Hello World" Example:</h4><div class="flex border-b border-gray-700">${tabButtons}</div>${codeBlocks}</div>`;
+                }
+
+                const resultCard = `
+                    <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6 mb-4 fade-in" style="animation-delay: ${index * 100}ms">
+                        <div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400">${api.name}</h3><div class="flex-shrink-0 ml-4 hidden sm:block">${tagItems}</div></div>
+                        <p class="text-gray-300 mt-2">${api.description}</p>
+                        <div class="mt-5 border-t border-gray-700 pt-4"><h4 class="font-semibold text-gray-200 mb-2">Quick Guide:</h4><ol class="list-decimal list-inside text-gray-400 space-y-1">${guideItems}</ol></div>
+                        ${codeSnippetHtml}
+                        <div class="mt-6 flex flex-col sm:flex-row gap-4"><a href="${api.link}" target="_blank" class="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300 text-center">Get API Key ➔</a><a href="${api.docs}" target="_blank" class="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300 text-center">Read Docs</a></div>
+                    </div>`;
+                resultsContainer.innerHTML += resultCard;
+            });
+
+            document.querySelectorAll('.copy-code-btn').forEach(button => {
+                const code = button.previousElementSibling.querySelector('code').innerText;
+                button.addEventListener('click', () => copyToClipboard(code, button));
+            });
+            document.querySelectorAll('.snippet-tab').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const card = e.target.closest('.p-6');
+                    const lang = e.target.dataset.lang;
+                    card.querySelectorAll('.snippet-tab').forEach(btn => { btn.classList.remove('bg-gray-900', 'text-cyan-400'); btn.classList.add('bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'); });
+                    e.target.classList.add('bg-gray-900', 'text-cyan-400');
+                    e.target.classList.remove('bg-gray-700', 'text-gray-300', 'hover:bg-gray-600');
+                    card.querySelectorAll('.snippet-content').forEach(content => content.classList.add('hidden'));
+                    card.querySelector(`.snippet-content[data-lang-content="${lang}"]`).classList.remove('hidden');
+                });
+            });
+            Prism.highlightAll();
+        }
+
+        function displayFilterTags() {
+            const allTags = [...new Set(apiDatabase.flatMap(api => api.tags))];
+            let tagsHtml = `<button data-tag="All" class="filter-tag bg-cyan-500 text-white px-3 py-1 text-sm font-medium rounded-full transition-colors">All</button>`;
+            allTags.forEach(tag => { tagsHtml += `<button data-tag="${tag}" class="filter-tag bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1 text-sm font-medium rounded-full transition-colors">${tag}</button>`; });
+            filterTagsContainer.innerHTML = tagsHtml;
+            document.querySelectorAll('.filter-tag').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    activeFilterTag = e.target.dataset.tag;
+                    document.querySelectorAll('.filter-tag').forEach(btn => { btn.classList.remove('bg-cyan-500', 'text-white'); btn.classList.add('bg-gray-700', 'text-gray-200'); });
+                    e.target.classList.add('bg-cyan-500', 'text-white');
+                    e.target.classList.remove('bg-gray-700', 'text-gray-200');
+                    runFilter();
+                });
+            });
+        }
+
+        // --- Core Logic ---
+        function runFilter() {
+            const searchTerm = searchInput.value.toLowerCase();
+            let filteredApis = apiDatabase;
+            if (activeFilterTag !== 'All') { filteredApis = filteredApis.filter(api => api.tags.includes(activeFilterTag)); }
+            if (searchTerm) { filteredApis = filteredApis.filter(api => api.name.toLowerCase().includes(searchTerm) || api.tags.some(tag => tag.toLowerCase().includes(searchTerm))); }
+            displayResults(filteredApis, searchInput.value);
+        }
+
+        // --- Modal Logic ---
+        function showModal() { submissionModal.classList.remove('hidden'); }
+        function hideModal() { submissionModal.classList.add('hidden'); submissionForm.reset(); }
+
+        // --- Event Listeners ---
+        openModalBtn.addEventListener('click', showModal);
+        closeModalBtn.addEventListener('click', hideModal);
+        cancelBtn.addEventListener('click', hideModal);
+        submissionModal.addEventListener('click', (event) => { if (event.target === submissionModal) { hideModal(); } });
+        submissionForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const submitButton = submissionForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerText;
+            submitButton.innerText = 'Submitted!';
+            submitButton.disabled = true;
+            setTimeout(() => {
+                hideModal();
+                submitButton.innerText = originalText;
+                submitButton.disabled = false;
+            }, 2000);
+        });
+        searchInput.addEventListener('input', runFilter);
+        window.onload = () => {
+            displayFilterTags();
+            runFilter();
+        };
+    </script>
+</body>
+</html>
